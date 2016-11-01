@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.DoctorPatientMapper" >
+  <resultMap id="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.DoctorPatient" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="doctorId" property="doctorId" jdbcType="INTEGER" />
+    <result column="patientId" property="patientId" jdbcType="INTEGER" />
+    <result column="doctorName" property="doctorName" jdbcType="VARCHAR" />
+    <result column="doctorPosition" property="doctorPosition" jdbcType="VARCHAR" />
+    <result column="doctorHospital" property="doctorHospital" jdbcType="VARCHAR" />
+    <result column="doctorDepartment" property="doctorDepartment" jdbcType="VARCHAR" />
+    <result column="doctorGoodField" property="doctorGoodField" jdbcType="VARCHAR" />
+    <result column="doctorPhoto" property="doctorPhoto" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <resultMap id="DoctorMap" type="com.ezhuanbing.api.dao.mybatis.model.Doctor" >
+    <result column="doctorId" property="doctorId" jdbcType="INTEGER" />
+    <result column="doctorName" property="doctorName" jdbcType="VARCHAR" />
+    <result column="doctorPosition" property="doctorPosition" jdbcType="VARCHAR" />
+    <result column="doctorHospital" property="doctorHospital" jdbcType="VARCHAR" />
+    <result column="doctorDepartment" property="doctorDepartment" jdbcType="VARCHAR" />
+    <result column="doctorDepartmentId" property="doctorDepartmentId" jdbcType="INTEGER" />
+    <result column="doctorGoodField" property="doctorGoodField" jdbcType="VARCHAR" />
+    <result column="doctorPhoto" property="doctorPhoto" jdbcType="VARCHAR" />
+    <result column="doctorDescription" property="doctorDescription" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <select id="getPatientDoctor" resultMap="BaseResultMap">
+    select mdp.id,d.ID doctorId,d.DoctorName doctorName,d.photo doctorPhoto,
+             h.HospitalName doctorHospital,dp.DepartmentName doctorDepartment,dc.ItemValue doctorPosition,
+             (select group_concat(sdp.DepartmentName separator ',') 
+                from doctorsubdepartment dsp,department sdp 
+                where dsp.DoctorID = d.ID and dsp.DepartmentID =sdp.ID
+       ) doctorGoodField
+	from mb_doctorpatient mdp 
+	LEFT JOIN doctor d on mdp.doctorId = d.ID
+	LEFT JOIN hospital h on d.HospitalID = h.ID
+	LEFT JOIN department dp on d.DepartmentID = dp.ID
+	LEFT JOIN dictionary dc on d.Position = dc.ID 
+	where d.`Status` = 1 <!-- and d.isTestAccount=0  -->
+	and mdp.patientId = #{patientId} 
+	order by mdp.joinDate desc
+  </select>
+  
+  <select id="getDoctor" resultMap="DoctorMap">
+    select d.ID doctorId,d.DoctorName doctorName,d.photo doctorPhoto,
+             h.HospitalName doctorHospital,dp.DepartmentName doctorDepartment,d.DepartmentID as doctorDepartmentId,dc.ItemValue doctorPosition,
+             (select group_concat(sdp.DepartmentName separator ',') 
+                from doctorsubdepartment dsp,department sdp 
+                where dsp.DoctorID = d.ID and dsp.DepartmentID =sdp.ID
+       ) doctorGoodField,d.Description
+    from doctor d
+    LEFT JOIN hospital h on d.HospitalID = h.ID
+    LEFT JOIN department dp on d.DepartmentID = dp.ID
+    LEFT JOIN dictionary dc on d.Position = dc.ID 
+    where d.`Status` = 1 
+    and d.id = #{doctorId}
+  </select>
+  
+  <select id="getDoctorList" resultMap="DoctorMap">
+    select d.ID doctorId,d.DoctorName doctorName,
+             h.HospitalName doctorHospital,dp.DepartmentName doctorDepartment
+    from doctor d
+    LEFT JOIN hospital h on d.HospitalID = h.ID
+    LEFT JOIN department dp on d.DepartmentID = dp.ID
+    where d.`Status` = 1 
+    and d.id &lt;&gt; #{doctorId}
+  	<if test="doctorName != null and doctorName.length() > 0">
+		and d.doctorName like CONCAT('%',#{doctorName,jdbcType=VARCHAR},'%') 
+	</if>
+    and d.hospitalid in (select hospitalid from doctor where id=#{doctorId})
+  </select>
+  
+	<update id="updateDPGroupId" parameterType="map" >
+		update mb_doctorpatient
+		set groupId = #{defaultid,jdbcType=INTEGER}
+		where
+			doctorId=#{doctorId,jdbcType=INTEGER}
+			and groupId=#{id,jdbcType=INTEGER}
+	</update>
+  
+	<update id="updateGroupBatch" parameterType="Map">
+		update mb_doctorpatient
+		set groupId = #{gid,jdbcType=INTEGER}
+		where
+			doctorId=#{doctorId,jdbcType=INTEGER}
+			and patientId in
+		<foreach collection="p" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+</mapper>

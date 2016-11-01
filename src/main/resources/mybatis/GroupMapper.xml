@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.GroupMapper">
+	<resultMap id="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.Group">
+	  <id column="id" jdbcType="INTEGER" property="id" />
+	  <result column="doctorId" jdbcType="INTEGER" property="doctorId" />
+	  <result column="name" jdbcType="VARCHAR" property="name" />
+	  <result column="isdefault" jdbcType="INTEGER" property="isdefault" />
+	</resultMap>
+
+	<select id="selectGroupsByDoctorId" parameterType="Map" resultMap="BaseResultMap">
+		SELECT * 
+		FROM mb_group 
+		WHERE doctorId=#{doctorId,jdbcType=INTEGER}
+		<if test="isdefault != null and isdefault > 0">
+			AND isdefault=1
+		</if>
+	</select>
+	
+	<insert id="insertGroup" parameterType="com.ezhuanbing.api.dao.mybatis.model.Group" useGeneratedKeys="true" keyProperty="id" >
+		insert into mb_contentclasstemplates (doctorId,name)
+		values (#{doctorId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR})
+	</insert>
+	
+	<insert id="insertDefaultGroup" parameterType="com.ezhuanbing.api.dao.mybatis.model.Group" useGeneratedKeys="true" keyProperty="id" >
+		insert into mb_contentclasstemplates (doctorId,name,isdefault)
+		values (#{doctorId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, 1)
+	</insert>
+	
+	<delete id="delGroupById" parameterType="Map" >
+		delete from mb_group
+		where id = #{id,jdbcType=INTEGER}
+	</delete>
+	
+	<sql id="Base_Column_List">
+    id
+  	</sql> 	  
+</mapper>

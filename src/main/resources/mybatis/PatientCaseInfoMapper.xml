@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.PatientCaseInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.ezhuanbing.api.vo.PatientCaseInfoResp">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="patientid" jdbcType="INTEGER" property="patientid" />
+    <result column="departmentId" jdbcType="INTEGER" property="departmentId" />
+    <result column="doctorid" jdbcType="INTEGER" property="doctorid" />
+    <result column="patientName" jdbcType="VARCHAR" property="patientName" />
+    <result column="patientAge" jdbcType="VARCHAR" property="patientAge" />
+    <result column="patientIdCard" jdbcType="VARCHAR" property="patientIdCard" />
+    <result column="patientSex" jdbcType="VARCHAR" property="patientSex" />
+    <result column="patientPhoneNumber" jdbcType="VARCHAR" property="patientPhoneNumber" />
+    <result column="patientAddress" jdbcType="VARCHAR" property="patientAddress" />
+    <result column="complained" jdbcType="LONGVARCHAR" property="complained" />
+    <result column="presentillness" jdbcType="LONGVARCHAR" property="presentillness" />
+    <result column="pasthistory" jdbcType="LONGVARCHAR" property="pasthistory" />
+    <result column="physical" jdbcType="LONGVARCHAR" property="physical" />
+    <result column="auxiliaryexamination" jdbcType="LONGVARCHAR" property="auxiliaryexamination" />
+   <!--  <result column="diagnosis" jdbcType="LONGVARCHAR" property="diagnosis" />
+    <result column="opinionresult" jdbcType="LONGVARCHAR" property="opinionresult" /> -->
+  </resultMap> 
+  
+  
+  <select id="selectByPatientCaseMap" parameterType="com.ezhuanbing.api.dao.mybatis.model.PatientCaseInfo" resultMap="BaseResultMap">
+    select 
+        b.id as patientid,
+        b.name as patientName,
+        (case when b.sex="1" then "男" when b.sex="0" then "女" end) as patientSex,
+        b.idCard as patientIdCard,
+        b.phoneNumber as patientPhoneNumber,
+        (year(now())-year(substring(b.idCard,7,8))-1) + ( DATE_FORMAT(substring(b.idCard,7,8), '%m%d') &lt;= DATE_FORMAT(NOW(), '%m%d') ) as patientAge,
+        b.address as patientAddress,
+        a.id as id,
+        a.doctorId as doctorId,
+        a.auxiliaryExamination as auxiliaryExamination,
+        a.complained as complained,
+<!--         a.diagnosis as diagnosis,
+        a.opinionResult as opinionResult, -->
+        a.pastHistory as pastHistory,
+        a.physical as physical,
+        a.presentIllness as presentIllness
+    from 
+        mb_patientcaseinfo a 
+        right JOIN mb_patient b 
+    on 
+        a.patientId=b.id 
+   <where>
+        <if test="patientid != null ">
+           and  b.id = #{patientid,jdbcType=INTEGER} 
+        </if>
+         <if test="departmentId != null">
+           and  a.departmentId = #{departmentId,jdbcType=INTEGER} 
+        </if>
+      </where>
+    </select>
+    
+    
+      <select id="selectByPatientCaseInfo" parameterType="com.ezhuanbing.api.dao.mybatis.model.PatientCaseInfo" resultMap="BaseResultMap">
+	    select 
+	        b.id as patientid,
+	        b.name as patientName,
+	        (case when b.sex="1" then "男" when b.sex="0" then "女" end) as patientSex,
+	        b.idCard as patientIdCard,
+	        b.phoneNumber as patientPhoneNumber,
+	        (year(now())-year(substring(b.idCard,7,8))-1) + ( DATE_FORMAT(substring(b.idCard,7,8), '%m%d') &lt;= DATE_FORMAT(NOW(), '%m%d') ) as patientAge,
+	        b.address as patientAddress
+	    from  mb_patient b 
+    <where>
+        <if test="patientid != null ">
+           and  b.id = #{patientid,jdbcType=INTEGER} 
+        </if>
+         <if test="departmentId != null ">
+           and  b.departmentId = #{departmentId,jdbcType=INTEGER} 
+        </if>
+      </where>
+    </select>
+    
+ <update id="updateByPatientCaseInfo" parameterType="com.ezhuanbing.api.dao.mybatis.model.PatientCaseInfo" >
+    update mb_patientcaseinfo
+    <set >
+       <if test="patientid != null" >
+        patientId = #{patientid,jdbcType=INTEGER},
+      </if>
+      <if test="complained != null" >
+        complained = #{complained,jdbcType=VARCHAR},
+      </if>
+      <if test="presentillness != null" >
+        presentillness = #{presentillness,jdbcType=VARCHAR},
+      </if>
+      <if test="pasthistory != null" >
+        pasthistory = #{pasthistory,jdbcType=VARCHAR},
+      </if>
+      <if test="physical != null" >
+        physical = #{physical,jdbcType=VARCHAR},
+      </if>
+      <if test="auxiliaryexamination != null" >
+        auxiliaryexamination = #{auxiliaryexamination,jdbcType=VARCHAR},
+      </if>
+   <!--    <if test="diagnosis != null" >
+        diagnosis = #{diagnosis,jdbcType=VARCHAR},
+      </if>
+      <if test="opinionresult != null" >
+        opinionresult = #{opinionresult,jdbcType=VARCHAR},
+      </if> -->
+    </set>
+    <where>
+      <if test="id != null" >
+          and id = #{id,jdbcType=INTEGER}
+      </if>
+    </where>
+  </update>
+</mapper>

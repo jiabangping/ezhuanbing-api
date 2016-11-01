@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.PatientWeixinMapper">
+  <resultMap id="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.patient.PatientWeixin">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="loginName" jdbcType="VARCHAR" property="loginName" />
+    <result column="systemId" jdbcType="INTEGER" property="systemId" />
+    <result column="wxOpendId" jdbcType="VARCHAR" property="wxOpendId" />
+  </resultMap>
+ 
+  
+  <sql id="Base_Column_List">
+    id, loginName, systemId, wxOpendId
+  </sql>
+  
+</mapper>

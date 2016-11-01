@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.PatientFollowUpPlanDetailMapper">
+  <resultMap id="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.followplan.PatientFollowUpPlanDetail">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="planId" jdbcType="INTEGER" property="planId" />
+    <result column="templateId" jdbcType="INTEGER" property="templateId" />
+    <result column="questionnaireId" jdbcType="INTEGER" property="questionnaireId" />
+    <result column="planMark" jdbcType="VARCHAR" property="planMark" />
+    <result column="isActive" jdbcType="CHAR" property="isActive" />
+    <result column="status" jdbcType="CHAR" property="status" />
+    <result column="planOrder" jdbcType="INTEGER" property="planOrder" />
+    <result column="planResult" jdbcType="INTEGER" property="planResult" />
+    <result column="sendTime" jdbcType="TIMESTAMP" property="sendTime"/>
+    <result column="feedbackTime" jdbcType="TIMESTAMP" property="feedbackTime"/>
+    <result column="achiveTime" jdbcType="TIMESTAMP" property="achiveTime" />
+    <result column="nextTime" jdbcType="TIMESTAMP" property="nextTime" />
+    <result column="pushMessage" jdbcType="VARCHAR" property="pushMessage" />
+    <result column="isPay" jdbcType="INTEGER" property="isPay" />
+    <result column="isLastRecord" jdbcType="INTEGER" property="isLastRecord" />
+  </resultMap>
+  
+  <sql id="Base_Column_List">
+    id, planId, templateId, questionnaireId, planMark, isPay, status, planOrder, planResult
+  </sql>
+ 
+  <resultMap id="PatientFollowUpPlanDetailResp" type="com.ezhuanbing.api.vo.PatientFollowUpPlanDetailResp">
+  		<result column="planDetailId" jdbcType="INTEGER" property="planDetailId" />
+  		<result column="planId" jdbcType="INTEGER" property="planId" />
+		<result column="planName" jdbcType="VARCHAR" property="planName" />
+		<result column="planType" jdbcType="INTEGER" property="planType" />
+		<result column="patientId" jdbcType="INTEGER" property="patientId" />
+		<result column="patientName" jdbcType="VARCHAR" property="patientName" />
+		<result column="patientSex" jdbcType="VARCHAR" property="patientSex" />
+		<result column="patientAge" jdbcType="INTEGER" property="patientAge" />
+		<result column="sendDate" jdbcType="VARCHAR" property="sendDate" />
+		<result column="generateTime" jdbcType="TIMESTAMP" property="generateTime" />
+		<result column="followupCount" jdbcType="INTEGER" property="followupCount" />
+		<result column="patientIdCard" jdbcType="VARCHAR" property="patientIdCard" />
+		<result column="payStatus" jdbcType="INTEGER" property="payStatus" />
+		<result column="planDetailStatus" jdbcType="INTEGER" property="planDetailStatus" />
+		<result column="overTimeStatus" jdbcType="INTEGER" property="overTimeStatus" />
+		<result column="feedbackTime" jdbcType="TIMESTAMP" property="feedbackTime" />
+		<result column="endDate" jdbcType="TIMESTAMP" property="endDate" />
+		<result column="nextDate" jdbcType="TIMESTAMP" property="nextDate" />
+		<result column="planMark" jdbcType="VARCHAR" property="planMark" />
+		<result column="paperId" jdbcType="INTEGER" property="paperId" />
+		<result column="isLastRecord" jdbcType="INTEGER" property="isLastRecord" />
+		<result column="paperTitle" jdbcType="VARCHAR" property="paperTitle" />
+	</resultMap>
+	
+    <resultMap id="AppPatientFollowUpPlanDetailResp" type="com.ezhuanbing.api.vo.AppPatientFollowUpPlanDetailResp">
+       <result column="planId" jdbcType="INTEGER" property="planId" />
+       <result column="planDetailId" jdbcType="INTEGER" property="planDetailId" />
+       <result column="paperId" jdbcType="INTEGER" property="paperId" />
+       <result column="planMark" jdbcType="VARCHAR" property="planMark" />
+       <result column="departmentName" jdbcType="VARCHAR" property="departmentName" />
+       <result column="doctorName" jdbcType="VARCHAR" property="doctorName" />
+       <result column="endDate" jdbcType="TIMESTAMP" property="endDate"/>
+       <result column="pushMessage" jdbcType="VARCHAR" property="pushMessage" />
+       <result column="status" jdbcType="CHAR" property="status" />
+       <result column="planType" jdbcType="INTEGER" property="planType" />
+       <result column="doctorId" jdbcType="INTEGER" property="doctorId" />
+       <result column="photo" jdbcType="VARCHAR" property="photo" />
+   </resultMap>
+    
+     <select id="selectPatientFollowUpPlanDetail" parameterType="com.ezhuanbing.api.dao.mybatis.model.followplan.PatientFollowUpPlanDetail" resultMap="BaseResultMap">
+        select *
+        from mb_patientfollowupplandetail detail       
+         <where>
+	        <if test="id != null ">
+	           and  id = #{id,jdbcType=INTEGER} 
+	        </if>
+	         <if test="planId != null">
+	           and  planId = #{planId,jdbcType=INTEGER} 
+	        </if>
+      </where>
+    </select>   
+    
+  <select id="selectByParamsMap" parameterType="Map" resultMap="PatientFollowUpPlanDetailResp">
+  	select
+  		<if test="paperTitle != null ">
+  		distinct 
+  		</if>
+  		detail.isLastRecord as isLastRecord, detail.id as planDetailId,plan.id as planId,detail.questionnaireId as paperId , plan.planName as planName,plan.planType as planType,p.id as patientId,p.name as patientName,
+  		case when p.sex='0' then '女' when p.sex='1' then '男' else '男' end as patientSex,
+  		abs(TIMESTAMPDIFF(YEAR,DATE_FORMAT(NOW(),'%Y-%m-%d %H:%i:%s'),DATE_FORMAT(p.birthday,'%Y-%m-%d %H:%i:%s'))) as patientAge,
+  		detail.sendTime AS sendDate,
+  		detail.planOrder as followupCount,
+  		detail.isPay as payStatus,
+  		detail.`status` as planDetailStatus,
+  		detail.overTimeStatus as overTimeStatus,
+  		detail.achiveTime as endDate,
+  		detail.feedbackTime as feedbackTime,
+  		detail.achiveTime as achiveTime,
+  		detail.generateTime as generateTime,
+  		detail.nextTime as nextDate,
+  		<if test="paperTitle != null ">
+  		paper.paperTitle as paperTitle,
+  		</if>
+  		detail.planMark as planMark
+  		from mb_patientfollowupplandetail detail 
+  	join mb_patientfollowupplan plan 
+  		on detail.planId = plan.id 
+  	join mb_patient p 
+  		on plan.patientId = p.Id 
+  	<if test="paperTitle != null ">
+  	join mb_patientpaper paper
+  		on detail.id = paper.planDetailId
+  	</if> 	
+  		<if test="_parameter != null">
+			<where>
+				and detail.isActive = "1"
+				<if test="doctor != null ">
+					<if test="doctor.id != null">
+						and plan.doctorId = #{doctor.id,jdbcType=INTEGER}
+					</if>
+				</if>
+				
+				<if test="plan != null ">
+					<if test="plan.planName != null and plan.planName.length() > 0">
+						and plan.planName like #{plan.planName,jdbcType=VARCHAR } 
+					</if>
+					<if test="plan.id != null ">
+						and plan.id  =#{plan.id,jdbcType=INTEGER } 
+					</if>
+				</if>
+				
+				<if test="patient != null ">
+					<if test="patient.name != null and patient.name.length() > 0">
+						and p.name like #{patient.name ,jdbcType=VARCHAR } 
+					</if>
+				</if>
+				
+				<if test="planDetail != null ">
+					<if test="planDetail.isPay != null ">
+						and detail.isPay = #{planDetail.isPay ,jdbcType=INTEGER } 
+					</if>
+					
+					<if test="planDetail.status != null ">
+						and detail.status = #{planDetail.status ,jdbcType=CHAR } 
+					</if>
+					
+					<if test="planDetail.planId != null ">
+                        and detail.planId = #{planDetail.planId ,jdbcType=INTEGER } 
+                    </if>
+					
+					<if test="planDetail.unEqStatu != null ">
+						<![CDATA[  
+						    and detail.status <> #{planDetail.unEqStatu ,jdbcType=CHAR }
+  						]]>  
+					</if>
+					
+					<if test="planDetail.overTimeStatus != null ">
+						<![CDATA[  
+						    and detail.overTimeStatus = #{planDetail.overTimeStatus ,jdbcType=INTEGER }
+  						]]>  
+					</if>
+					
+				</if>
+			</where>
+			order by detail.id asc
+		</if>
+	</select>  		
+	 
+	 
+	 <select id="selectByPlanDetail" parameterType="com.ezhuanbing.api.dao.mybatis.model.followplan.PatientFollowUpPlanDetail" resultMap="PatientFollowUpPlanDetailResp">
+    select detail.isLastRecord as isLastRecord,
+           detail.id as planDetailId,
+           detail.questionnaireId as paperId , 
+           plan.planName as planName,
+           plan.planType as planType,
+           plan.patientId as patientId,
+	       detail.sendTime AS sendDate,
+	       detail.planOrder as followupCount,
+	       detail.isPay as payStatus,
+	       detail.`status` as planDetailStatus,
+	       detail.achiveTime as endDate,
+	       detail.feedbackTime as feedbackTime,
+	       detail.nextTime as nextDate,
+	       p.paperTitle as planMark
+        from mb_patientfollowupplandetail detail 
+    join mb_patientfollowupplan plan 
+        on detail.planId = plan.id 
+    join mb_patientpaper p 
+        on detail.questionnaireId = p.Id       
+            <where>
+                and detail.isActive = "1"
+                and detail.status =5
+                
+                <if test="planId != null ">
+                     and detail.planId  =#{planId,jdbcType=INTEGER } 
+                 </if>                              
+            </where>
+            order by detail.id asc
+    </select>       
+	<select id="selectPatientFollowUpPlanDetailForApp"  resultMap="AppPatientFollowUpPlanDetailResp">
+	   select pf.id planId,pfd.id planDetailId,pfd.planMark,
+             dpt.DepartmentName departmentName,d.DoctorName doctorName,pfd.sendTime,pfd.pushMessage,pfd.status,
+             pf.planType,pfd.questionnaireId paperId,d.id doctorId,d.photo 
+		from mb_patientfollowupplan pf
+		LEFT JOIN mb_patientfollowupplandetail pfd on pf.id = pfd.planId
+		LEFT JOIN doctor d on pf.doctorId = d.ID
+		LEFT JOIN department dpt on d.DepartmentID = dpt.ID
+		where pf.patientId = #{patientId} and pf.status=1 and pfd.isActive = 1 and pfd.status  &lt; 5 <!-- &lt;&gt;(<>) -->
+	</select>
+	
+	<select id="selectPatientFollowUpPlanDetailHistoryForApp"  resultMap="AppPatientFollowUpPlanDetailResp">
+       select pf.id planId,pfd.id planDetailId,pfd.planMark,
+             dpt.DepartmentName departmentName,d.DoctorName doctorName,pfd.sendTime,pfd.pushMessage,pfd.status,
+             pf.planType,pfd.questionnaireId paperId,d.id doctorId,d.photo  
+        from mb_patientfollowupplan pf
+        LEFT JOIN mb_patientfollowupplandetail pfd on pf.id = pfd.planId
+        LEFT JOIN doctor d on pf.doctorId = d.ID
+        LEFT JOIN department dpt on d.DepartmentID = dpt.ID
+        where pf.patientId = #{patientId} and pf.status=1 and pfd.isActive = 1 and pfd.status = 5
+        <if test="queryText != null">
+            and (    
+                     d.doctorName like CONCAT('%','${queryText}','%')
+                  or dpt.departmentName like CONCAT('%','${queryText}','%')
+                  or pfd.planMark like CONCAT('%','${queryText}','%')
+                )
+        </if>
+        order by pfd.achiveTime desc
+        <if test="startColumn >= 0" >
+            limit #{startColumn},#{pageSize}
+        </if>
+    </select>
+    
+    <update id="updateById" parameterType="Map">
+    	update mb_patientfollowupplandetail
+    	set templateId=#{templateId ,jdbcType=INTEGER },
+    		sendTime=#{startTime ,jdbcType=TIMESTAMP }
+    	where id=#{detailId ,jdbcType=INTEGER }
+    </update>
+    
+    <update id="updateDetailsSendTimeById" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+			update mb_patientfollowupplandetail d
+			<set>
+			d.sendTime = #{item.sendTime}
+			</set> 
+			where d.id = ${item.id}
+		</foreach> 
+    </update>
+    
+    <!-- 查询要推送给病人的表单（如果planOrder是1，直接推送给病人，如果planOrder不是1，还需要使用getPlanDetailToPatient2进行进一步过滤） -->
+    <select id="getPlanDetailToPatient" parameterType="Map" resultType="Map">
+		SELECT 
+			distinct(p.id) AS pid,
+			p.patientId AS patientId,
+			p.doctorId AS doctorId,
+			ANY_VALUE(pd.id) AS id,
+			ANY_VALUE(pd.templateId) AS templateId,
+			ANY_VALUE(pd.planOrder) AS planOrder
+		FROM mb_patientfollowupplandetail pd
+		JOIN mb_patientfollowupplan p
+		ON p.id=pd.planId
+		WHERE DATEDIFF(pd.generateTime, NOW()) &lt;= #{predays ,jdbcType=INTEGER }
+		AND pd.templateId > 0
+		AND pd.isActive = 0
+		GROUP BY p.id
+		ORDER BY ANY_VALUE(pd.generateTime);
+    </select>
+    
+    <!-- 根据planId和planOrder查询要推送给用户的随访计划 -->
+    <select id="getPlanDetailToPatient2" parameterType="Map" resultType="Map">
+    	SELECT 
+			distinct(p.id) AS pid,
+			p.patientId AS patientId,
+			p.doctorId AS doctorId,
+			ANY_VALUE(pd.id) AS id,
+			ANY_VALUE(pd.templateId) AS templateId,
+			pd.status
+		FROM mb_patientfollowupplandetail pd
+		JOIN mb_patientfollowupplan p
+		ON p.id=pd.planId
+		WHERE 
+			pd.planOrder = #{planOrder ,jdbcType=INTEGER }
+			AND pd.planId = #{planId ,jdbcType=INTEGER }
+    </select>
+    
+    <select id="selectNextTimeByPlanIdAndDetailId" resultType="java.util.Date">
+    	select a.generateTime as generateTime 
+    	from  mb_patientfollowupplandetail a 
+    		join (select planOrder+1 as planOrder from mb_patientfollowupplandetail d where d.id = #{detailId}) b 
+		on a.planOrder  = b.planOrder and a.planId = #{planId}
+    </select>
+    
+    <select id="updateDetailOvertimeStatus" parameterType="Map">
+		UPDATE mb_patientfollowupplandetail
+		SET overTimeStatus=1
+		WHERE isActive=1
+		AND overTimeStatus IS NULL
+		AND status=3
+		AND DATEDIFF(NOW(), sendtime) >= 3
+    </select>
+    
+    <select id="getPlanNameAndPlanOrder" parameterType="Map" resultType="Map">
+    	SELECT p.id,p.planName,pd.planOrder
+		FROM mb_patientfollowupplandetail pd
+		LEFT JOIN mb_patientfollowupplan p
+		ON pd.planId=p.id
+		WHERE pd.id=#{detailId ,jdbcType=INTEGER }
+    </select>
+</mapper>

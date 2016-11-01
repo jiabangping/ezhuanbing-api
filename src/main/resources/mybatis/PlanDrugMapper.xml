@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.PlanDrugMapper">
+   <select id="getDrugsByPatientIdAndPlanDetailId" parameterType="map" resultType="com.ezhuanbing.api.dao.mybatis.model.medicine.PlanDrug" >
+   select * from mb_plandrug where patientId=#{patientId} and drugListId in (select id from mb_druglist where plandetailId=#{planDetailId})
+  </select>
+  <select id="getCountByDrugIdAndPlanId" parameterType="map" resultType="java.lang.Integer">
+   select count(*) from mb_plandrug where drugListId in (select id from mb_druglist where
+   planDetailId=#{planDetailId}) and drugId=#{drugId}
+   
+  <!--select count(*) from mb_plandrug a inner JOIN mb_druglist b on a.drugListId=b.id
+     where a.drugId=#{drugId} and a.drugListId=#{drugListId} and b.planDetailId=#{planDetailId} -->
+  </select>
+</mapper>

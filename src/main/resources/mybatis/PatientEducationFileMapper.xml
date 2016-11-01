@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.PatientEducationFileMapper" >
+  <resultMap id="PatientEducationFileResultMap" type="com.ezhuanbing.api.vo.PatientEducationFileResp">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="profile" jdbcType="VARCHAR" property="profile" />
+    <result column="fileUrl" jdbcType="VARCHAR" property="fileUrl" />
+    <result column="doctorName" jdbcType="VARCHAR" property="doctorName" />
+    <result column="departmentName" jdbcType="VARCHAR" property="departmentName" />
+    <result column="sendTime" jdbcType="TIMESTAMP" property="sendTime"/>
+  </resultMap>
+
+   <select id="selectPatientEducationFile" resultMap="PatientEducationFileResultMap">
+    SELECT ddf.id,ddf.title,ddf.profile,ddf.fileUrl,d.doctorName,dpt.departmentName,pdf.sendTime FROM mb_patienteducationfile pdf 
+    LEFT JOIN mb_patient p on pdf.patientId = p.id
+    LEFT JOIN mb_doctoreducationfile ddf on pdf.doctorEducationId = ddf.id
+    LEFT JOIN doctor d on ddf.doctorId = d.ID
+    LEFT JOIN department dpt on d.departmentId = dpt.id
+    where pdf.patientId = #{patientId} and ddf.status=1
+   </select>
+
+</mapper>

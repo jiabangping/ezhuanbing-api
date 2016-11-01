@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.PatientContentClassMapper">
+  <resultMap id="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientContentClass">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="patientPaperId" jdbcType="INTEGER" property="patientPaperId" />
+    <result column="contentClassTemplatesId" jdbcType="INTEGER" property="contentClassTemplatesId" />
+    <result column="className" jdbcType="VARCHAR" property="className" />
+    <result column="classSort" jdbcType="INTEGER" property="classSort" />
+    <result column="classStatus" jdbcType="INTEGER" property="classStatus" />
+    <result column="leaf" jdbcType="INTEGER" property="leaf" />
+    <result column="pid" jdbcType="INTEGER" property="pid" />
+  </resultMap>
+  
+  <!--获取所有的子分类树-->
+  <resultMap id="ContentClassWithChildren" extends="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientContentClass">
+    <collection property="childs" select="selectPatientContentClassByPid" column="id" ofType="PatientContentClass"></collection>
+  </resultMap>
+  
+  <!--分类下的问题-->
+  <resultMap id="ContentClassWithQuestions" extends="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientContentClass">
+    <collection property="patientQuestions" select="com.ezhuanbing.api.dao.mybatis.mapper.PatientQuestionsMapper.selectPatientQuestionsByPatientContentClass" column="id" ofType="PatientContentClass"></collection>
+  </resultMap>
+  
+  <!-- 分类下的分类和问题 -->
+  <resultMap id="ContentClassWithChildrenAndQuestions" extends="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientContentClass">
+    <collection property="childs" select="selectPatientContentClassByPid" column="id" ofType="PatientContentClass"></collection>
+    <collection property="patientQuestions" select="com.ezhuanbing.api.dao.mybatis.mapper.PatientQuestionsMapper.selectPatientQuestionsByPatientContentClass" column="id" ofType="PatientContentClass"></collection>
+  </resultMap>
+  
+  <sql id="Base_Column_List">
+    id, patientPaperId, contentClassTemplatesId, className, classSort, classStatus,leaf,pid
+  </sql>
+
+  <!-- 获取所有的子分类 -->
+  <select id="selectPatientContentClassesByPatientPaper" parameterType="java.lang.Integer" resultMap="ContentClassWithChildren">
+    select 
+    <include refid="com.ezhuanbing.api.dao.mybatis.mapper.PatientContentClassMapper.Base_Column_List" />
+    from mb_patientcontentclass
+    where patientPaperId = #{id,jdbcType=INTEGER} and pid = 0 order by classSort asc
+  </select>
+  
+  <!-- 获取分类下的问题 -->
+  <select id="selectPatientContentClassesWithQuestionsByPatientPaper" parameterType="java.lang.Integer" resultMap="ContentClassWithChildsAndQuestions">
+    select 
+    <include refid="com.ezhuanbing.api.dao.mybatis.mapper.PatientContentClassMapper.Base_Column_List" />
+    from mb_patientcontentclass
+    where patientPaperId = #{id,jdbcType=INTEGER} and pid=0 order by classSort asc
+  </select> 
+  
+   <!--获取所有的子分类与问题-->
+  <resultMap id="ContentClassWithChildsAndQuestions" extends="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientContentClass">
+    <collection property="childs" select="selectPatientContentClassWithQuestionsByPid" column="id" ofType="PatientContentClass"></collection>
+    <collection property="patientQuestions" select="com.ezhuanbing.api.dao.mybatis.mapper.PatientQuestionsMapper.selectPatientQuestionsByPatientContentClass" column="id" ofType="PatientContentClass"></collection>
+  </resultMap>
+  
+   <!-- 根据pid查询所有的子分类 -->
+   <select id="selectPatientContentClassWithQuestionsByPid" parameterType="java.lang.Integer" resultMap="ContentClassWithQuestions">
+  	 select 
+   	<include refid="Base_Column_List" />
+    from mb_patientcontentclass where pid = #{id}
+  </select>
+  
+   <!-- 根据pid查询所有的子分类 -->
+   <select id="selectPatientContentClassByPid" parameterType="java.lang.Integer" resultMap="ContentClassWithChildren">
+  	 select 
+   	<include refid="Base_Column_List" />
+    from mb_patientcontentclass where pid = #{id}
+  </select>
+  
+  <!-- 根据分类id取分类下的所有问题 -->
+  <select id="selectPatientContentClassWithQuestions" parameterType="java.lang.Integer" resultMap="ContentClassWithQuestions">
+    select 
+    <include refid="com.ezhuanbing.api.dao.mybatis.mapper.PatientContentClassMapper.Base_Column_List" />
+    from mb_patientcontentclass
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+   <!-- 根据id查询分类下面的详细信息 -->
+   <select id="selectPatientContentClassByidDetail" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+     select 
+    <include refid="Base_Column_List" />
+    from mb_patientcontentclass where id = #{id}
+  </select>
+</mapper>

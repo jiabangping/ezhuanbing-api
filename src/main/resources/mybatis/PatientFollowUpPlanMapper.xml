@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.PatientFollowUpPlanMapper">
+  <resultMap id="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.followplan.PatientFollowUpPlan">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="doctorId" jdbcType="INTEGER" property="doctorId" />
+    <result column="patientId" jdbcType="INTEGER" property="patientId" />
+    <result column="planName" jdbcType="VARCHAR" property="planName" />
+    <result column="planType" jdbcType="INTEGER" property="planType" />
+    <result column="startDate" jdbcType="TIMESTAMP" property="startDate" />
+    <result column="endDate" jdbcType="TIMESTAMP" property="endDate" />
+    <result column="status" jdbcType="CHAR" property="status" />
+    <association property="patient" select="selectPatient" column="patientId" javaType="com.ezhuanbing.api.dao.mybatis.model.patient.Patient"></association>
+  </resultMap>
+ 
+  <sql id="Base_Column_List">
+    id, doctorId, patientId, planName, planType, startDate, endDate, status
+  </sql>
+ 
+  
+  <!-- 患者随访计划中查询patient -->
+  <select id="selectPatient" parameterType="java.lang.Integer" resultType="com.ezhuanbing.api.dao.mybatis.model.patient.Patient">
+    select 
+    <include refid="com.ezhuanbing.api.dao.mybatis.mapper.PatientMapper.Base_Column_List" />
+    from mb_patient
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+  <insert id="insertAndGetId" parameterType="com.ezhuanbing.api.dao.mybatis.model.followplan.PatientFollowUpPlan">
+  	<selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+  		select LAST_INSERT_ID()
+  	</selectKey>
+  	INSERT INTO mb_patientfollowupplan(
+  		doctorId,
+  		patientId,
+  		planName,
+  		planType,
+  		startDate,
+  		endDate,
+  		status)
+  	VALUES (
+  		#{doctorId,jdbcType=INTEGER}, 
+  		#{patientId,jdbcType=INTEGER}, 
+  		#{planName,jdbcType=VARCHAR}, 
+  		#{planType,jdbcType=INTEGER}, 
+  		#{startDate,jdbcType=TIMESTAMP}, 
+  		#{endDate,jdbcType=TIMESTAMP}, 
+  		#{status,jdbcType=VARCHAR}
+  		)
+  </insert>
+  
+  <select id="selectFollowUpPlanOtherList" parameterType="com.ezhuanbing.api.dao.mybatis.model.followplan.PatientFollowUpPlan" resultType="Map">
+  	select p.*,d.DoctorName
+    from mb_patientfollowupplan p,
+     doctor d
+    where  p.doctorId = d.ID 
+                
+            <if test="id != null ">
+               and  id = #{id,jdbcType=INTEGER} 
+            </if>
+             <if test="doctorId != null and status==0">
+               and  doctorId = #{doctorId,jdbcType=INTEGER} 
+            </if>
+            
+            <if test="patientId != null">
+               and  patientId = #{patientId,jdbcType=INTEGER} 
+            </if>
+            
+            <if test="doctorId != null and status == 1">
+               and  doctorId not in (#{doctorId,jdbcType=INTEGER})   
+               and EXISTS (select 1 from mb_patientfollowupplandetail pd where pd.planId = p.id and pd.status =5)              
+            </if>
+           
+  </select>
+  
+  <select id="selectFollowUpPlanOtherList_PM" parameterType="Map" resultType="Map">
+	select
+	distinct
+	 p.*,d.DoctorName
+	from
+	mb_patientfollowupplan p,
+	doctor d,
+	mb_patientfollowupplandetail pd
+	where p.doctorId = d.ID
+		and pd.planId=p.id
+		and pd.isActive=1
+	<if test="id != null ">
+		and id = #{id,jdbcType=INTEGER}
+	</if>
+	<if test="doctorid != null and status==0">
+		and doctorId = #{doctorid,jdbcType=INTEGER}
+	</if>
+
+	<if test="patientId != null">
+		and patientId = #{patientId,jdbcType=INTEGER}
+	</if>
+
+	<if test="doctorId != null and status == 1">
+		and doctorId not in (#{doctorId,jdbcType=INTEGER})
+		and EXISTS (select 1 from mb_patientfollowupplandetail pd where pd.planId
+		= p.id and pd.status =5)
+	</if>
+  </select>
+  
+   <select id="selectFollowUpDetailList" parameterType="Map" resultType="Map">
+    select a.*,pt.paperTile
+    from
+    (select 
+        pd.id,
+        pd.planId,
+        p.planName,
+        pd.generateTime,
+        pd.sendTime,
+        pd.planOrder as times,
+        pd.isActive,
+        pd.templateId
+    from mb_patientfollowupplan p
+    join mb_patientfollowupplandetail pd
+    on p.id=pd.planId
+    where p.id=#{planId,jdbcType=INTEGER}) as a
+    left join mb_paperstemplates pt
+    on a.templateId=pt.id
+    order by a.id
+  </select>
+  
+  
+  <select id="selectStartAndEndTime" parameterType="Map" resultType="Map">
+  	select c.generateTime from 
+	  	(select a.*,pt.paperTile
+		from
+		(select 
+			pd.id,
+			p.planName,
+			pd.generateTime,
+			pd.sendTime,
+			pd.id+1-(select min(id) from mb_patientfollowupplandetail where planId=#{planId,jdbcType=INTEGER}) as times,
+			pd.isActive,
+			pd.templateId
+		from mb_patientfollowupplan p
+		join mb_patientfollowupplandetail pd
+		on p.id=pd.planId
+		where p.id=#{planId,jdbcType=INTEGER}) as a
+		left join mb_paperstemplates pt
+		on a.templateId=pt.id) as c
+	where c.times in
+	<foreach collection="followTimes" item="item" open="(" close=")" separator="," >
+		#{item}
+	</foreach>
+  </select>
+  
+	<update id="updateById" parameterType="Map">
+	   	update mb_patientfollowupplan
+	   	set id=#{templateId ,jdbcType=INTEGER },
+	   		templateId=#{templateId ,jdbcType=INTEGER },
+	   		sendTime=#{startTime ,jdbcType=TIMESTAMP }
+	   	where id=#{detailId ,jdbcType=INTEGER }
+	</update>
+</mapper>

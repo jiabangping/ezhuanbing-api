@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.MedicineMapper">
+  
+  <select id="getMedicinesByName" parameterType="java.lang.String" resultType="com.ezhuanbing.api.dao.mybatis.model.medicine.Medicine">
+    select *
+    from mb_medicine
+    where name = #{name,jdbcType=VARCHAR}
+  </select>
+  <select id="getDrugListInfo" parameterType="java.lang.Integer" resultType="map">
+  	select count(*) count,drugListId from mb_plandrug where drugListId in (select id from mb_druglist where planDetailId=#{planId}) group by 
+     drugListId having count(*) <![CDATA[<=]]> 5
+  </select>
+  
+  <select id="getMedicineNameByAbbr" parameterType="java.lang.String" resultType="com.ezhuanbing.api.dao.mybatis.model.medicine.Medicine">
+    select *
+    from mb_medicine
+    where abbreviation like #{abbr}"%" limit #{pageIndex}, #{pageSize}  <!-- "%"#{abbr}"%" -->
+  </select>
+</mapper>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.SmsSendMapper">
+	<resultMap id="BaseResultMap" type="com.ezhuanbing.api.model.SmsModel">
+		<id column="ID" jdbcType="INTEGER" property="id" />
+		<result column="Type" jdbcType="INTEGER" property="type" />
+		<result column="Mobile" jdbcType="VARCHAR" property="mobile" />
+		<result column="NoteContent" jdbcType="VARCHAR" property="noteContent" />
+		<result column="VerifyCode" jdbcType="VARCHAR" property="verifyCode" />
+		<result column="ExpTime" jdbcType="TIMESTAMP" property="expTime" />
+		<result column="SendTime" jdbcType="TIMESTAMP" property="sendTime" />
+		<result column="Status" jdbcType="INTEGER" property="status" />
+		<result column="RetryCount" jdbcType="INTEGER" property="retryCount" />
+		<result column="InUser" jdbcType="INTEGER" property="inUser" />
+		<result column="InDate" jdbcType="TIMESTAMP" property="inDate" />
+		<result column="EditUser" jdbcType="INTEGER" property="editUser" />
+		<result column="EditDate" jdbcType="TIMESTAMP" property="editDate" />
+	</resultMap>
+
+
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id"
+		parameterType="com.ezhuanbing.api.model.SmsModel">
+		insert into sms (Type, SendTime, RetryCount,
+		Status,InDate,InUser,EditDate,EditUser,Mobile,NoteContent)
+		values (#{type,jdbcType=INTEGER},
+		#{sendTime,jdbcType=TIMESTAMP},#{retryCount,jdbcType=INTEGER},
+		#{status,jdbcType=INTEGER},#{inDate,jdbcType=TIMESTAMP},
+		#{inUser,jdbcType=INTEGER},#{editDate,jdbcType=TIMESTAMP},
+		#{editUser,jdbcType=INTEGER},#{mobile,jdbcType=VARCHAR},
+		#{noteContent,jdbcType=VARCHAR})
+	</insert>
+
+	<update id="updateByPrimary" parameterType="com.ezhuanbing.api.model.SmsModel">
+		update sms set Status = #{status,jdbcType=INTEGER},RetryCount
+		=#{retryCount,jdbcType=INTEGER} where id = #{id,jdbcType=INTEGER}
+	</update>
+
+</mapper>

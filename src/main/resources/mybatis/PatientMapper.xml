@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.PatientMapper">
+  <resultMap id="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.patient.Patient">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="loginName" jdbcType="VARCHAR" property="loginName" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="sex" jdbcType="CHAR" property="sex" />
+    <result column="photo" jdbcType="VARCHAR" property="photo" />
+    <result column="birthday" jdbcType="TIMESTAMP" property="birthday" />
+    <result column="idCard" jdbcType="VARCHAR" property="idCard" />
+    <result column="height" jdbcType="INTEGER" property="height" />
+    <result column="weight" jdbcType="INTEGER" property="weight" />
+    <result column="address" jdbcType="VARCHAR" property="address" />
+    <result column="extraInfoId" jdbcType="INTEGER" property="extraInfoId" />
+  </resultMap>
+  
+  <resultMap id="BaseResultMap2" type="com.ezhuanbing.api.vo.PatientResp">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="loginName" jdbcType="VARCHAR" property="loginName" /> 
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="sex" jdbcType="CHAR" property="sex" />  
+    <result column="idCard" jdbcType="VARCHAR" property="idCard" /> 
+    <result column="groupId" jdbcType="INTEGER" property="groupId" />
+    <result column="groupName" jdbcType="VARCHAR" property="groupName" /> 
+  
+  </resultMap>
+  
+  
+  <select id="selectByParamsMap" parameterType="Map" resultMap="BaseResultMap2">
+	<if test="followupCount != null">
+		select * from (
+	</if>
+			select id,loginName,name,sex,idCard,age,area,groupId,groupName,inDate, ifnull(pfuc,0) as followupCount from (
+				select id,loginName,name,sex,idCard,age,area,t4.groupId, inDate, groupName from 
+					(
+					select t6.id,loginName,name,sex,idCard,age,groupId,t6.inDate,
+						CONCAT(a.ProvinceName,(case when a.CityName="NULL" then "" else a.CityName end),(case when a.DistrictName="NULL" then "" else a.DistrictName end)) as area
+					from 
+					(select 
+						distinct p.id,
+						p.loginName,
+						p.name,
+						(case when p.sex="1" then "男" when p.sex="0" then "女" end) as sex,
+						p.idCard,
+						IFNULL(abs(TIMESTAMPDIFF(YEAR,DATE_FORMAT(NOW(),'%Y-%m-%d %H:%i:%s'),DATE_FORMAT(p.birthday,'%Y-%m-%d %H:%i:%s'))),"") as age,
+						d.groupId,
+						date_format(d.joinDate,'%Y-%m-%d') as inDate,
+						p.districtId as districtId
+					from 
+						mb_doctorpatient d 
+						JOIN mb_patient p 
+					on 
+						d.patientId=p.id 
+					where
+						<if test="groupId != null and groupId > 0">
+							d.groupId=#{groupId,jdbcType=VARCHAR} and 
+						</if>
+						d.doctorId=#{doctorId,jdbcType=INTEGER}
+						<if test="_parameter != null">
+							<if test="name != null and name.length() > 0">
+								and p.name like CONCAT('%',#{name,jdbcType=VARCHAR},'%') 
+							</if>
+						</if>
+						) as t6
+						left join area a
+						on t6.districtId=a.id
+					) as t4
+				left join
+				(select
+					g.id as groupId,
+					g.`name` as groupName
+					from
+					mb_group g ) as t5
+				on
+					t4.groupId=t5.groupId
+			) as t1
+			left join
+			(
+				select pfu.patientId as pufpid, count(*) as pfuc
+				from 
+					mb_patientfollowupplan pfu, 
+					mb_patientfollowupplandetail pfud
+				where pfu.doctorId=#{doctorId,jdbcType=INTEGER}
+					and pfud.planId=pfu.id
+					group by pfu.patientId
+			) as t2
+			on t2.pufpid=t1.id
+	<if test="followupCount != null">
+		) as t3 where t3.followupCount=#{followupCount,jdbcType=VARCHAR}
+	</if>
+	</select> 
+	
+	<select id="getPatientExtInfoByLoginName" parameterType="Map" resultType="Map">
+		select 
+			p.loginName,
+			pe.dictionaryName,
+			pe.content
+		from mb_patient p
+			join mb_patientextrainfo pe
+			on p.id=pe.patientId
+		where p.loginName=#{loginName,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="getPatientInfo" parameterType="Map" resultType="Map">
+		select 
+			p.loginName,
+			p.name,
+			(case when p.sex="1" then "男" when p.sex="0" then "女" end) as sex,
+			p.idCard,
+			IFNULL(abs(TIMESTAMPDIFF(YEAR,DATE_FORMAT(NOW(),'%Y-%m-%d %H:%i:%s'),DATE_FORMAT(p.birthday,'%Y-%m-%d %H:%i:%s'))),"") as age,
+			IFNULL(CONCAT(a.ProvinceName,(case when a.CityName="NULL" then "" else a.CityName end),(case when a.DistrictName="NULL" then "" else a.DistrictName end)),"") as area
+		from 
+			mb_patient p 
+			LEFT JOIN area a
+			on 
+			p.districtId=a.id
+		where
+			p.loginName=#{loginName,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="getPatientNumsByGroupId" parameterType="Map" resultType="java.lang.Integer">
+		SELECT COUNT(DISTINCT(patientId)) FROM mb_group g
+		LEFT JOIN mb_doctorpatient d
+		ON d.groupId=g.id
+		WHERE g.id=#{id,jdbcType=VARCHAR}
+	</select>
+	
+	<sql id="Base_Column_List">
+    id, loginName, password, name, sex, photo, birthday, idCard, address
+  	</sql> 	  
+</mapper>

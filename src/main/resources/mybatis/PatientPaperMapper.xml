@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.PatientPaperMapper">
+
+  <resultMap id="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientPaper">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="patientId" jdbcType="INTEGER" property="patientId" />
+    <result column="patientPaperDateTime" jdbcType="TIMESTAMP" property="patientPaperDateTime" />
+    <result column="paperDoctor" jdbcType="VARCHAR" property="paperDoctor" />
+    <result column="paperDoctorId" jdbcType="INTEGER" property="paperDoctorId" />
+    <result column="paperDept" jdbcType="VARCHAR" property="paperDept" />
+    <result column="paperDeptId" jdbcType="INTEGER" property="paperDeptId" />
+    <result column="paperTitle" jdbcType="VARCHAR" property="paperTitle" />
+    <result column="paperStatus" jdbcType="INTEGER" property="paperStatus" />
+    <result column="paperSummary" jdbcType="LONGVARCHAR" property="paperSummary" />
+    <result column="planDetailId" jdbcType="INTEGER" property="planDetailId" />
+  </resultMap>
+  
+  <resultMap id="AppPatientContentClassMap" type="com.ezhuanbing.api.vo.AppPatientContentClass">
+	    <id column="id" jdbcType="INTEGER" property="id" />
+	    <result column="patientPaperId" jdbcType="VARCHAR" property="patientPaperId" />
+	    <result column="title" jdbcType="VARCHAR" property="title" />
+	    <result column="allItem" jdbcType="INTEGER" property="allItem" />
+	    <result column="finishItem" jdbcType="INTEGER" property="finishItem" />
+	    <collection property="childs" select="selectPatientPaperContentClassByPIdForApp" column="id" ofType="AppPatientContentClass"></collection>
+  </resultMap>
+  
+  
+  <!-- 问卷下所有的分类(分类树 )-->
+  <resultMap id="PaperWithTreeClasses" extends="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientPaper">
+    <collection property="patientContentClasses" select="com.ezhuanbing.api.dao.mybatis.mapper.PatientContentClassMapper.selectPatientContentClassesByPatientPaper" column="id" ofType="PatientContentClass"></collection>
+  </resultMap>
+  
+  <!-- 问卷下所有的树分类带问题-->
+  <resultMap id="PaperWithClassesAndQuestions" extends="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientPaper">
+     <collection property="patientContentClasses" select="com.ezhuanbing.api.dao.mybatis.mapper.PatientContentClassMapper.selectPatientContentClassesWithQuestionsByPatientPaper" column="id" ofType="PatientContentClass"></collection>
+  </resultMap>
+ 
+  <sql id="Base_Column_List">
+    id, patientId, patientPaperDateTime, paperDoctor, paperDoctorId, paperDept, paperDeptId, 
+    paperTitle, paperStatus,paperSummary,planDetailId
+  </sql>
+ 
+ <!-- 分类下带问题 -->
+  <select id="selectPaperWithClassesAndQuestions" parameterType="java.lang.Integer" resultMap="PaperWithClassesAndQuestions">
+    select 
+    <include refid="Base_Column_List" />
+    from mb_patientpaper
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+  <!--所有的子分类树 -->
+  <select id="getPaperClassesTree" parameterType="java.lang.Integer" resultMap="PaperWithTreeClasses">
+    select 
+    <include refid="Base_Column_List" />
+    from mb_patientpaper
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+  <!-- 根据planDetailId获取所有的PatientPaper  -->
+  <select id="selectPatientPapersByPlanDetailId" parameterType="java.lang.Integer" resultMap="PaperWithTreeClasses">
+  	 select 
+    paper.id, patientId, patientPaperDateTime, paperDoctor, paperDoctorId, paperDept, paperDeptId, 
+    paperTitle, paperStatus,paperSummary,planDetailId
+    from 
+    mb_patientpaper paper join mb_patientfollowupplandetail detail on paper.planDetailId = detail.id 
+    where detail.id = #{id,jdbcType=INTEGER} 
+  </select>
+
+
+   <select id="selectPatientPaperIdsByPlanDetailId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+   	select 
+    paper.id
+    from 
+    mb_patientpaper paper join mb_patientfollowupplandetail detail on paper.planDetailId = detail.id 
+    where detail.id = #{id,jdbcType=INTEGER} 
+   </select>
+   
+   <select id="selectSimplePatientPapersByPlanDetailId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+   	select 
+    paper.id, patientId, patientPaperDateTime, paperDoctor, paperDoctorId, paperDept, paperDeptId, 
+    paperTitle, paperStatus,paperSummary,planDetailId
+    from 
+    mb_patientpaper paper join mb_patientfollowupplandetail detail on paper.planDetailId = detail.id 
+    where detail.id = #{id,jdbcType=INTEGER} 
+   </select>
+   
+    <select id="selectPatientPaperContentClassForApp" resultMap="AppPatientContentClassMap">
+      <!--   select 
+		    pcc.id,
+		    pcc.patientPaperId,
+		    pcc.className title,
+		    (select count(*) from mb_patientquestions pq where pcc.id = pq.patientContentClassId) allItem,
+		    (select count(*) from mb_patientquestions pq where pcc.id = pq.patientContentClassId and pq.qstAnswer is not null) finishItem
+		from mb_patientcontentclass pcc 
+		where pcc.patientPaperId = #{paperId} and pcc.pid = 0 -->
+		
+		select 
+		    pccA.id,
+		    pccA.className title,
+		    allItem.count allItem, 
+		  finishItem.count finishItem  
+		from mb_patientcontentclass pccA
+		LEFT JOIN
+		(
+		    
+		        select pcc.id,count(1) count from mb_patientcontentclass pcc
+		        LEFT JOIN mb_patientquestions pq on pcc.id = pq.patientContentClassId 
+		        where pcc.patientPaperId = #{paperId} and pcc.pid = 0 
+		        and pcc.id not in 
+		        (
+		            select pcc.pid from mb_patientcontentclass pcc 
+		            where pcc.patientPaperId = #{paperId} and pcc.pid != 0
+		        )
+		        GROUP BY pcc.id
+		
+		        UNION
+		
+		        select pcc.id,count(1) from mb_patientcontentclass pcc
+		        LEFT JOIN mb_patientcontentclass pcc2 on pcc.id = pcc2.pid
+		        LEFT JOIN mb_patientquestions pq on pcc2.id = pq.patientContentClassId
+		        where pcc.patientPaperId = #{paperId} 
+		        and pcc.pid = 0 
+		        and pcc2.patientPaperId = #{paperId}
+		        and pcc.id in 
+		        (
+		            select pcc.pid from mb_patientcontentclass pcc 
+		            where pcc.patientPaperId = #{paperId} and pcc.pid != 0
+		        )
+		        GROUP BY pcc.id
+		    
+		)allItem on pccA.id = allItem.id
+		LEFT JOIN
+		(
+		        select pcc.id,count(1) count from mb_patientcontentclass pcc
+		        LEFT JOIN mb_patientquestions pq on pcc.id = pq.patientContentClassId 
+		        where pcc.patientPaperId = #{paperId} and pcc.pid = 0 
+		        and pcc.id not in 
+		        (
+		            select pcc.pid from mb_patientcontentclass pcc 
+		            where pcc.patientPaperId = #{paperId} and pcc.pid != 0
+		        )
+		        and pq.qstAnswer is not null and trim(pq.qstAnswer) != ''
+		        GROUP BY pcc.id
+		
+		        union
+		
+		        select pcc.id,count(1) from mb_patientcontentclass pcc
+		        LEFT JOIN mb_patientcontentclass pcc2 on pcc.id = pcc2.pid
+		        LEFT JOIN mb_patientquestions pq on pcc2.id = pq.patientContentClassId
+		        where pcc.patientPaperId = #{paperId} 
+		        and pcc.pid = 0 
+		        and pcc2.patientPaperId = #{paperId}
+		        and pcc.id in 
+		        (
+		            select pcc.pid from mb_patientcontentclass pcc 
+		            where pcc.patientPaperId = #{paperId} and pcc.pid != 0
+		        )
+		        and pq.qstAnswer is not null and trim(pq.qstAnswer) != ''
+		        GROUP BY pcc.id
+		)finishItem on pccA.id = finishItem.id
+		
+		where pccA.patientPaperId = #{paperId} and pccA.pid = 0
+
+    </select>
+    
+    <select id="selectPatientPaperContentClassByPIdForApp" resultMap="AppPatientContentClassMap">
+        select 
+            pcc.id,
+            pcc.className title,
+            pcc.patientPaperId,
+            (select count(*) from mb_patientquestions pq where pcc.id = pq.patientContentClassId) allItem,
+            (select count(*) from mb_patientquestions pq where pcc.id = pq.patientContentClassId and pq.qstAnswer is not null) finishItem
+        from mb_patientcontentclass pcc 
+        where pcc.pid = #{paperId}
+    </select>
+</mapper>

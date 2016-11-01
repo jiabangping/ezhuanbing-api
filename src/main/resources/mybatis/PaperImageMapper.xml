@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.PaperImageMapper">
+  <resultMap id="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PaperImage">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="paperId" jdbcType="INTEGER" property="paperId" />
+    <result column="imageName" jdbcType="VARCHAR" property="imageName" />
+    <result column="uploadTime" jdbcType="TIMESTAMP" property="uploadTime" />
+  </resultMap>
+ 
+
+  <sql id="Base_Column_List">
+    id, paperId, imageName
+  </sql>
+
+  <select id="selectPaperImagesByPaperId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+  	select image.id, paperId, imageName,uploadTime
+  	from mb_paperimage image join mb_patientpaper paper on image.paperId = paper.id 
+  	where paper.id = #{id}
+  </select>
+
+</mapper>

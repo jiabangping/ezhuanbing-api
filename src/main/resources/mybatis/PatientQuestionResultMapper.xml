@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.PatientQuestionResultMapper">
+  <resultMap id="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientQuestionResult">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="patientQuestionsId" jdbcType="INTEGER" property="patientQuestionsId" />
+    <result column="optionTemplatesId" jdbcType="INTEGER" property="optionTemplatesId" />
+    <result column="optionNumber" jdbcType="VARCHAR" property="optionNumber" />
+    <result column="optionType" jdbcType="INTEGER" property="optionType" />
+    <result column="optionPicture" jdbcType="CHAR" property="optionPicture" />
+    <result column="optientResult" jdbcType="CHAR" property="optientResult" />
+    <result column="optientStatus" jdbcType="INTEGER" property="optientStatus" />
+    <result column="optionContent" jdbcType="LONGVARCHAR" property="optionContent" />
+    <result column="optionOther" jdbcType="LONGVARCHAR" property="optionOther" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, patientQuestionsId, optionTemplatesId, optionNumber, optionType, optionPicture, 
+    optientResult, optientStatus,optionContent,optionOther
+  </sql>
+  
+   <select id="selectQuestionResultsByQuestion" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+   	<include refid="Base_Column_List" />
+    from mb_patientquestionresult where patientQuestionsId =#{patientQuestionsId,jdbcType=INTEGER}
+  </select>
+  
+  
+  <update id="updateByPrimary" parameterType="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientQuestionResult">
+        update mb_patientquestionresult 
+       <set>
+            <if test="optientStatus != null  ">
+                optientStatus = #{optientStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="optientResult != null ">
+                optientResult = #{optientResult,jdbcType=INTEGER},
+            </if>
+        </set> 
+        
+      <where>
+	       <if test="id != null">
+	        and id = #{id,jdbcType=INTEGER}
+	       </if>
+	       <if test="patientQuestionsId != null">
+	        and patientQuestionsId = #{patientQuestionsId,jdbcType=INTEGER}
+	       </if>
+	        <if test="optionNumber != null">
+            and optionNumber = #{optionNumber,jdbcType=VARCHAR}
+           </if>
+       </where>
+    </update>
+    
+       <select id="selectQuestionResultsBy" parameterType="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientQuestionResult" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from mb_patientquestionresult
+
+    <where>
+            <if test="id != null">
+            and id = #{id,jdbcType=INTEGER}
+           </if>
+           <if test="patientQuestionsId != null">
+            and patientQuestionsId = #{patientQuestionsId,jdbcType=INTEGER}
+           </if>          
+            <if test="optientStatus != null">
+            and optientStatus = #{optientStatus,jdbcType=VARCHAR}
+           </if>
+       </where>
+  </select>
+  
+   <select id="selectQuestionResult" parameterType="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientQuestionResult" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from mb_patientquestionresult
+
+    <where>
+            <if test="id != null">
+            and id = #{id,jdbcType=INTEGER}
+           </if>
+           <if test="patientQuestionsId != null">
+            and patientQuestionsId = #{patientQuestionsId,jdbcType=INTEGER}
+           </if>  
+            <if test="optionNumber != null">
+            and optionNumber = #{optionNumber,jdbcType=VARCHAR}
+           </if>
+       </where>
+  </select>
+  
+</mapper>

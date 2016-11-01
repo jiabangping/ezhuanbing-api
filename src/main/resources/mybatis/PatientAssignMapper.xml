@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.PatientAssignMapper">
+	<resultMap id="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.PatientAssign">
+	  <id column="id" jdbcType="INTEGER" property="id" />
+	  <result column="doctorId" jdbcType="INTEGER" property="doctorId" />
+	  <result column="todoctorId" jdbcType="INTEGER" property="todoctorId" />
+	  <result column="patientId" jdbcType="INTEGER" property="patientId" />
+	  <result column="templateId" jdbcType="INTEGER" property="templateId" />
+	  <result column="description" jdbcType="VARCHAR" property="description" />
+	</resultMap>
+	
+	<update id="assignNewDoctor" parameterType="Map">
+		update mb_doctorpatient
+		set doctorId=#{tid,jdbcType=INTEGER},
+			groupId=#{gId,jdbcType=INTEGER}
+		where doctorId=#{fid,jdbcType=INTEGER}
+		and patientId in
+		<foreach collection="p" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+	
+	<select id="getAssignedPatientList" parameterType="Map" resultType="Map">
+		SELECT
+		DISTINCT
+			d.ID AS did, 
+			p.id AS pid,
+			p.name, 
+			p.loginName,
+			IFNULL(abs(TIMESTAMPDIFF(YEAR,DATE_FORMAT(NOW(),'%Y-%m-%d %H:%i:%s'),DATE_FORMAT(p.birthday,'%Y-%m-%d %H:%i:%s'))),"") as age,
+			(CASE WHEN p.sex="1" THEN "男" WHEN p.sex="0" THEN "女" END) AS sex,
+			d.DoctorName,
+			dp.joinDate
+		FROM doctor d
+			JOIN mb_patientassign pa
+			JOIN mb_patient p
+			JOIN mb_doctorpatient dp
+		ON
+			dp.doctorId=pa.todoctorId
+			AND dp.patientId=pa.patientId
+			AND d.ID=pa.todoctorId
+			AND pa.patientId= p.id
+		WHERE
+			pa.doctorId=#{id,jdbcType=INTEGER};
+	</select>
+	
+	<sql id="Base_Column_List">
+    id
+  	</sql> 	  
+</mapper>

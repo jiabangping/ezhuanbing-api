@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezhuanbing.api.dao.mybatis.mapper.PatientQuestionsMapper">
+
+  <resultMap id="BaseResultMap" type="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientQuestions">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="patientContentClassId" jdbcType="INTEGER" property="patientContentClassId" />
+    <result column="qstType" jdbcType="INTEGER" property="qstType" />
+    <result column="qstTitle" jdbcType="CHAR" property="qstTitle" />
+    <result column="qstStatus" jdbcType="INTEGER" property="qstStatus" />
+    <result column="qstAnswerDateTime" jdbcType="TIMESTAMP" property="qstAnswerDateTime" />
+    <result column="questionsTemplatesId" jdbcType="INTEGER" property="questionsTemplatesId" />
+    <result column="qstPicture" jdbcType="LONGVARCHAR" property="qstPicture" />
+    <result column="qstAnswer" jdbcType="LONGVARCHAR" property="qstAnswer" />
+    <collection property="questionResults" select="com.ezhuanbing.api.dao.mybatis.mapper.PatientQuestionResultMapper.selectQuestionResultsByQuestion" column="id" ofType="PatientQuestionResult"></collection>
+  </resultMap>
+ 
+  <sql id="Base_Column_List">
+    id, patientContentClassId, qstType, qstTitle, qstStatus, qstAnswerDateTime, questionsTemplatesId,qstPicture, qstAnswer
+  </sql>
+  
+  <!-- 获取分类下的问题 -->
+  <select id="selectPatientQuestionsByPatientContentClass" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+   	<include refid="com.ezhuanbing.api.dao.mybatis.mapper.PatientQuestionsMapper.Base_Column_List" />
+    from mb_patientquestions
+    where patientContentClassId = #{id,jdbcType=INTEGER}
+  </select>
+  
+   <!-- 获取分类下的问题 -->
+  <select id="selectByIdPatientContentClass" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="com.ezhuanbing.api.dao.mybatis.mapper.PatientQuestionsMapper.Base_Column_List" />
+    from mb_patientquestions
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+  
+  
+  
+    <update id="updateByPrimary" parameterType="com.ezhuanbing.api.dao.mybatis.model.patientpaper.PatientQuestions">
+        update mb_patientquestions 
+       <set>
+            <if test="qstAnswer != null  ">
+                qstAnswer = #{qstAnswer,jdbcType=VARCHAR},
+            </if>
+        </set> 
+        
+      <where>
+           <if test="id != null">
+            and id = #{id,jdbcType=INTEGER}
+           </if>
+       </where>
+    </update>
+</mapper>
